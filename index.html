@@ -115,36 +115,19 @@
     }
     @keyframes slowTwist{0%{transform:rotate(0deg) scale(1)}50%{transform:rotate(180deg) scale(1.02)}100%{transform:rotate(360deg) scale(1)} }
 
-    /* thought cloud (hovering above bubble) */
-    .thought{
-      position:fixed; z-index:20030; pointer-events:none; display:flex;flex-direction:column;align-items:center; gap:6px; padding:10px 14px; border-radius:18px;
-      background:rgba(255,170,190,0.98); color:white; font-weight:700; font-size:13px;
-      box-shadow:0 10px 26px rgba(255,90,130,0.28); max-width:300px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; transform-origin:center bottom; opacity:1;
-      border:1px solid rgba(255,255,255,0.7);
-      animation: thoughtFloat 2200ms ease-in-out infinite, thoughtPulse 1600ms ease-in-out infinite;
-    }
-    @keyframes thoughtFloat{0%{transform:translateY(0)}50%{transform:translateY(-6px)}100%{transform:translateY(0)}}
-    @keyframes thoughtPulse{0%{box-shadow:0 10px 26px rgba(255,90,130,0.25)}50%{box-shadow:0 14px 34px rgba(255,90,130,0.45)}100%{box-shadow:0 10px 26px rgba(255,90,130,0.25)}}
-    .thought .text{padding:2px 6px}
-    .thought .dots{display:flex;gap:6px;align-items:center;justify-content:center}
-    .thought .dots span{width:8px;height:8px;border-radius:50%;background:#f2dbe0;opacity:0.9;transform:translateY(0);animation:dotRise 900ms infinite}
-    .thought .dots span:nth-child(2){animation-delay:160ms}
-    .thought .dots span:nth-child(3){animation-delay:320ms}
-    @keyframes dotRise{0%{transform:translateY(0);opacity:0.75}50%{transform:translateY(-8px);opacity:1}100%{transform:translateY(0);opacity:0.75}}
-
     /* floating hearts (no bubbles) */
     .float-heart{
       position:fixed; left:0; top:0; z-index:9997; pointer-events:none;
-      color:#ff6b7d;
+      color:#ff9fb0; opacity:0.55;
       text-shadow: 0 6px 18px rgba(255,0,60,0.18);
       transform: translate3d(0,0,0);
       will-change: transform, opacity, color;
     }
-    .float-heart.twinkle{animation:twinkle 2200ms ease-in-out infinite}
+    .float-heart.twinkle{animation:twinkle 2600ms ease-in-out infinite}
     @keyframes twinkle{
-      0%{opacity:0.45;color:#ffc1cc}
-      45%{opacity:0.8;color:#ffd2da}
-      100%{opacity:0.6;color:#ffe4ea}
+      0%{opacity:0.35;color:#ffd2da}
+      50%{opacity:0.65;color:#ffe0e6}
+      100%{opacity:0.45;color:#ffecee}
     }
 
     /* explosion overlay */
@@ -165,16 +148,16 @@
       100%{transform:scale(1.6); opacity:0}
     }
     .heart{
-      position:fixed; z-index:20001; font-size:26px; pointer-events:none; color:#ff6b7d;
+      position:fixed; z-index:20001; font-size:26px; pointer-events:none; color:#ff9fb0;
       animation: heartFloat var(--life,3000ms) ease-out forwards;
-      text-shadow: 0 6px 18px rgba(255,0,60,0.25);
+      text-shadow: 0 6px 18px rgba(255,0,60,0.18);
     }
     @keyframes heartFloat{
-      0%{transform:translate3d(var(--x), var(--y), 0) scale(0.6); opacity:0; color:#ff6b7d}
-      10%{opacity:1}
-      45%{opacity:0.9;color:#ff9fb0}
-      70%{opacity:0.7;color:#ffd0d8}
-      100%{transform:translate3d(var(--x2), var(--y2), 0) scale(1.3); opacity:0; color:#ffe4ea}
+      0%{transform:translate3d(var(--x), var(--y), 0) scale(0.6); opacity:0; color:#ff9fb0}
+      10%{opacity:0.65}
+      45%{opacity:0.55;color:#ffd2da}
+      70%{opacity:0.45;color:#ffe0e6}
+      100%{transform:translate3d(var(--x2), var(--y2), 0) scale(1.3); opacity:0; color:#ffecee}
     }
 
     .next-btn{
@@ -218,16 +201,17 @@
       position:fixed; inset:0; z-index:20010; pointer-events:none; overflow:hidden;
     }
     .confetti{
-      position:absolute; width:8px; height:14px; border-radius:2px; opacity:0.9;
-      animation:confettiBurst 2200ms ease-out infinite;
+      position:absolute; width:8px; height:14px; border-radius:2px; opacity:0.7;
+      animation:confettiBurst 12000ms ease-in-out infinite;
     }
     @keyframes confettiBurst{
-      0%{transform:translate3d(var(--x),var(--y),0) rotate(0deg) scale(0.8); opacity:0}
-      15%{opacity:1}
-      100%{transform:translate3d(var(--x2),var(--y2),0) rotate(260deg) scale(1.1); opacity:0}
+      0%{transform:translate3d(var(--x),var(--y),0) rotate(0deg) scale(0.9); opacity:0}
+      10%{opacity:0.8}
+      50%{transform:translate3d(var(--x2),var(--y2),0) rotate(260deg) scale(1.05); opacity:0.75}
+      100%{transform:translate3d(var(--x3),var(--y3),0) rotate(420deg) scale(1.0); opacity:0.6}
     }
     .firework{
-      position:absolute; width:6px; height:6px; border-radius:50%; background:transparent;
+      position:absolute; width:6px; height:6px; border-radius:50%; background:transparent; opacity:0.6;
       box-shadow:
         0 -20px 0 #ffd166,
         14px -14px 0 #ff6b7d,
@@ -237,12 +221,13 @@
         -14px 14px 0 #ffd166,
         -20px 0 0 #ff6b7d,
         -14px -14px 0 #6cd4ff;
-      animation:firework 1800ms ease-out infinite;
+      animation:fireworkPulse 6000ms ease-in-out infinite;
     }
-    @keyframes firework{
-      0%{transform:translate3d(var(--x),var(--y),0) scale(0.2); opacity:0}
-      20%{opacity:1}
-      100%{transform:translate3d(var(--x),var(--y),0) scale(2.4); opacity:0}
+    @keyframes fireworkPulse{
+      0%{transform:translate3d(var(--x),var(--y),0) scale(0.4); opacity:0}
+      20%{opacity:0.7}
+      60%{transform:translate3d(var(--x),var(--y),0) scale(2.2); opacity:0.8}
+      100%{transform:translate3d(var(--x),var(--y),0) scale(1.0); opacity:0.3}
     }
     .celebrate-bubble{
       position:absolute; border-radius:50%; border:1px solid rgba(255,255,255,0.7);
@@ -255,7 +240,8 @@
       border:1px solid rgba(255,255,255,0.85);
       box-shadow:0 12px 28px rgba(0,0,0,0.12), inset 0 0 12px rgba(255,255,255,0.5);
       animation:none;
-      will-change: transform;
+      will-change: transform, opacity;
+      opacity:0.65;
     }
     .photo-bubble img{
       width:100%; height:100%; object-fit:cover; display:block;
@@ -281,13 +267,13 @@
   (function(){
     // --- Config ---
     const LIP_EMOJI = '\u{1F48B}';
-    const THOUGHT_TEXT = 'do you wanna smooch? \u{1F618}';
     const RADIUS = 46; // half of bubble size (92px)
-    const EXPLODE_DELAY_MS = 90;
-    const HEART_COUNT = 140;
+    const EXPLODE_DELAY_MS = 4000;
+    const IS_MOBILE = window.matchMedia && window.matchMedia('(max-width: 700px)').matches;
+    const HEART_COUNT = IS_MOBILE ? 70 : 140;
     const HEART_LIFE_MS = 3000;
-    const HEART_SPREAD = 140;
-    const FLOAT_HEART_COUNT = 180;
+    const HEART_SPREAD = IS_MOBILE ? 110 : 140;
+    const FLOAT_HEART_COUNT = IS_MOBILE ? 90 : 180;
     const FLOAT_HEART_MIN_SIZE = 18;
     const FLOAT_HEART_MAX_SIZE = 34;
     const FLOAT_HEART_SPEED_MIN = 40;
@@ -295,9 +281,9 @@
     const FLOAT_TWINKLE_DELAY_MS = 1000;
     const EMOJI_HEART = '\u2764\uFE0F';
     const EMOJI_KISS = '\u{1F618}';
-    const FIREWORK_COUNT = 6;
-    const CONFETTI_COUNT = 120;
-    const CELEBRATE_BUBBLES = 6;
+    const FIREWORK_COUNT = IS_MOBILE ? 4 : 6;
+    const CONFETTI_COUNT = IS_MOBILE ? 70 : 120;
+    const CELEBRATE_BUBBLES = IS_MOBILE ? 4 : 6;
 
     // grab card element to bounce off
     const cardEl = document.querySelector('.card');
@@ -308,7 +294,7 @@
         icon: '\u{1F495}',
         title: 'Hey beautiful munchkin mama \u{1F339}\u{1F618}',
         body: 'You\'re my favorite little wonder -- thought I\'d put this here to make you smile. \u{1F970}',
-        footer: 'Click the bubble to jitter and explode into hearts.'
+        footer: 'Click the button for a surprise.'
       },
       {
         icon: '\u{1F495}',
@@ -364,15 +350,6 @@
     bubble.setAttribute('tabindex','0');
     bubble.setAttribute('aria-label','Floating kiss bubble');
     document.body.appendChild(bubble);
-
-    // Create thought cloud element (follows bubble) with three dots like thinking
-    const thought = document.createElement('div');
-    thought.className = 'thought';
-    thought.innerHTML = `<div class="text">${THOUGHT_TEXT}</div><div class="dots"><span></span><span></span><span></span></div>`;
-    document.body.appendChild(thought);
-    thought.style.opacity = '1';
-    thought.style.visibility = 'visible';
-    thought.style.display = 'flex';
 
     // paper swapper + handwriting typing
     let paperBusy = false;
@@ -490,6 +467,7 @@
       document.body.appendChild(celebrationLayer);
 
       const colors = ['#ff6b7d','#ffd166','#6cd4ff','#b8f2a6','#f7aef8'];
+      const confettiFrag = document.createDocumentFragment();
       for(let i=0;i<CONFETTI_COUNT;i++){
         const c = document.createElement('div');
         c.className = 'confetti';
@@ -498,31 +476,40 @@
         const y = rand(0, window.innerHeight * 0.4);
         const x2 = rand(0, window.innerWidth);
         const y2 = rand(window.innerHeight * 0.4, window.innerHeight);
+        const x3 = x2 + rand(-80, 80);
+        const y3 = y2 + rand(-60, 60);
         c.style.setProperty('--x', `${Math.round(x)}px`);
         c.style.setProperty('--y', `${Math.round(y)}px`);
         c.style.setProperty('--x2', `${Math.round(x2)}px`);
         c.style.setProperty('--y2', `${Math.round(y2)}px`);
+        c.style.setProperty('--x3', `${Math.round(x3)}px`);
+        c.style.setProperty('--y3', `${Math.round(y3)}px`);
         c.style.animationDelay = `${Math.round(rand(0, 1200))}ms`;
-        celebrationLayer.appendChild(c);
+        confettiFrag.appendChild(c);
       }
+      celebrationLayer.appendChild(confettiFrag);
 
+      const fireFrag = document.createDocumentFragment();
       for(let i=0;i<FIREWORK_COUNT;i++){
         const f = document.createElement('div');
         f.className = 'firework';
         f.style.setProperty('--x', `${Math.round(rand(60, window.innerWidth - 60))}px`);
         f.style.setProperty('--y', `${Math.round(rand(80, window.innerHeight * 0.6))}px`);
         f.style.animationDelay = `${Math.round(rand(0, 1200))}ms`;
-        celebrationLayer.appendChild(f);
+        fireFrag.appendChild(f);
       }
+      celebrationLayer.appendChild(fireFrag);
 
       photoBubblesActive = true;
       photoBubbles.length = 0;
       if(PHOTOS.length){
+        const bubbleFrag = document.createDocumentFragment();
         for(let i=0;i<CELEBRATE_BUBBLES;i++){
           const b = makePhotoBubble();
-          celebrationLayer.appendChild(b.el);
+          bubbleFrag.appendChild(b.el);
           photoBubbles.push(b);
         }
+        celebrationLayer.appendChild(bubbleFrag);
       }
     }
 
@@ -599,7 +586,6 @@
       const size = rand(FLOAT_HEART_MIN_SIZE, FLOAT_HEART_MAX_SIZE);
       el.style.fontSize = `${Math.round(size)}px`;
       el.style.animationDelay = `${Math.round(rand(0, 800))}ms`;
-      document.body.appendChild(el);
       const x = origin.x + rand(-16, 16);
       const y = origin.y + rand(-16, 16);
       const angle = rand(0, Math.PI * 2);
@@ -676,6 +662,7 @@
     function updatePhotoBubbles(dt){
       if(!photoBubblesActive) return;
       const s = dt/1000;
+      const cardRect = cardEl ? cardEl.getBoundingClientRect() : null;
       for(const b of photoBubbles){
         b.x += b.vx * s;
         b.y += b.vy * s;
@@ -692,6 +679,10 @@
           const next = pickPhoto(b.src);
           if(next){ b.src = next; b.img.src = next; }
           b.nextChange = rand(2500, 5000);
+        }
+        if(cardRect){
+          const overlap = b.x < cardRect.right && b.x + b.size > cardRect.left && b.y < cardRect.bottom && b.y + b.size > cardRect.top;
+          b.el.style.opacity = overlap ? '0.35' : '0.65';
         }
       }
       // collisions
@@ -793,19 +784,6 @@
         // apply transform (no left/top changes) -- smooth GPU animation
         bubble.style.transform = `translate3d(${Math.round(x)}px, ${Math.round(y)}px, 0)`;
 
-        // position thought directly above the bubble (centered)
-        const cloudRect = thought.getBoundingClientRect();
-        const cloudW = cloudRect.width || 200;
-        const cloudH = cloudRect.height || 44;
-        let tx = x + RADIUS - (cloudW/2); // center above bubble
-        let ty = y - cloudH - 12; // above bubble
-
-        // clamp cloud inside viewport
-        tx = clamp(tx, 8, window.innerWidth - cloudW - 8);
-        ty = clamp(ty, 8, window.innerHeight - cloudH - 8);
-
-        thought.style.transform = `translate3d(${Math.round(tx)}px, ${Math.round(ty)}px, 0)`;
-
       }
       requestAnimationFrame(tick);
     }
@@ -815,13 +793,8 @@
       if(exploding) return;
       exploding = true;
 
-      // screen flash
-      const boom = document.createElement('div');
-      boom.className = 'boom';
-      boom.innerHTML = `<div class="flash"></div>`;
-      document.body.appendChild(boom);
-
       if(emojisEnabled){
+        const frag = document.createDocumentFragment();
         // hearts everywhere (fade away)
         for(let i=0;i<HEART_COUNT;i++){
           const h = document.createElement('div');
@@ -838,15 +811,22 @@
           h.style.fontSize = `${18 + Math.random()*24}px`;
           h.style.animationDelay = `${Math.random()*220}ms`;
           h.style.setProperty('--life', `${HEART_LIFE_MS}ms`);
-          document.body.appendChild(h);
+          frag.appendChild(h);
           h.addEventListener('animationend', ()=> h.remove());
         }
+        document.body.appendChild(frag);
 
         // floating hearts across the screen (start only after explosion)
         if(!floatingHeartsActive){
           floatingHeartsActive = true;
           const origin = { x: cx, y: cy };
-          for(let i=0;i<FLOAT_HEART_COUNT;i++){ floatHearts.push(makeFloatHeart(origin)); }
+          const ffrag = document.createDocumentFragment();
+          for(let i=0;i<FLOAT_HEART_COUNT;i++){
+            const fh = makeFloatHeart(origin);
+            ffrag.appendChild(fh.el);
+            floatHearts.push(fh);
+          }
+          document.body.appendChild(ffrag);
         }
 
         // after 1s, start soft twinkle/pulse (hearts stay)
@@ -855,8 +835,6 @@
         }, FLOAT_TWINKLE_DELAY_MS);
       }
 
-      // remove flash after animation
-      setTimeout(()=> boom.remove(), 900);
     }
 
     // interaction: click to jitter, then explode
@@ -865,9 +843,9 @@
       // start jitter, then explode
       bubble.classList.add('jittering');
       bubble.style.boxShadow = '0 8px 20px rgba(0,0,0,0.06), inset 0 -4px 12px rgba(0,0,0,0.04)';
-      const bx = x + RADIUS;
-      const by = y + RADIUS;
       setTimeout(()=>{
+        const bx = x + RADIUS;
+        const by = y + RADIUS;
         spawnExplosion(bx, by);
         bubble.style.opacity = '0';
       }, EXPLODE_DELAY_MS);
@@ -880,9 +858,9 @@
         if(exploding) return;
         bubble.classList.add('jittering');
         bubble.style.boxShadow = '0 8px 20px rgba(0,0,0,0.06), inset 0 -4px 12px rgba(0,0,0,0.04)';
-        const bx = x + RADIUS;
-        const by = y + RADIUS;
         setTimeout(()=>{
+          const bx = x + RADIUS;
+          const by = y + RADIUS;
           spawnExplosion(bx, by);
           bubble.style.opacity = '0';
         }, EXPLODE_DELAY_MS);
