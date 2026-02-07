@@ -1,0 +1,915 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Hey beautiful &mdash; a tiny card</title>
+  <style>
+    :root{
+      --bg: #ffe6d2; /* peach */
+      --card: #ff9bb3; /* soft pink */
+      --card-deep: #ff6f91;
+      --muted: #6b5151;
+      --paper: #fffaf2;
+      --ink: #4a2a34;
+      font-family: Inter, system-ui, -apple-system, 'Segoe UI', Roboto, Arial;
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%;margin:0;background:var(--bg);color:#2b2b2b}
+    .wrap{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:28px}
+    .card{width:100%;max-width:520px;background:linear-gradient(180deg,var(--card),var(--card-deep));border-radius:20px;padding:18px;box-shadow:0 18px 40px rgba(255,120,150,0.12);position:relative;display:flex;flex-direction:column;align-items:center;text-align:center;min-height:220px}
+    .card:before{content:'';position:absolute;inset:0;border-radius:20px;pointer-events:none;background:radial-gradient(circle at 10% 30%, rgba(255,255,255,0.14), transparent 8%), radial-gradient(circle at 90% 80%, rgba(255,255,255,0.06), transparent 14%)}
+
+    .paper{
+      width:100%; background:var(--paper); border-radius:16px; padding:18px 20px 20px; position:relative;
+      box-shadow:0 10px 26px rgba(0,0,0,0.12), inset 0 0 0 1px rgba(120,90,80,0.08);
+      background-image:
+        repeating-linear-gradient(0deg, rgba(90,70,70,0.05) 0, rgba(90,70,70,0.05) 1px, transparent 1px, transparent 28px),
+        repeating-radial-gradient(circle at 30% 30%, rgba(120,90,80,0.06) 0 1px, transparent 2px 10px),
+        radial-gradient(circle at 20% 10%, rgba(255,230,210,0.35), transparent 40%);
+      transform: rotate(-0.4deg);
+      clip-path: polygon(0 0,100% 0,100% 100%,0 100%);
+    }
+    .paper:before{
+      content:''; position:absolute; inset:0; border-radius:16px; pointer-events:none;
+      background: radial-gradient(circle at 80% 20%, rgba(255,255,255,0.7), transparent 45%);
+      opacity:0.6;
+    }
+    .paper-icon{
+      width:84px; height:84px; border-radius:18px; background:rgba(255,240,235,0.9);
+      display:flex; align-items:center; justify-content:center; font-size:38px; color:var(--ink);
+      margin-bottom:6px; box-shadow:inset 0 0 0 1px rgba(120,90,80,0.12);
+    }
+    .paper .handwritten,
+    .paper h1,
+    .paper .note,
+    .paper .small{
+      font-family:'Segoe Script','Bradley Hand','Comic Sans MS','Lucida Handwriting',cursive;
+      color:var(--ink);
+      text-shadow:none;
+    }
+    h1{margin:8px 0 6px;font-size:26px;line-height:1.05;color:var(--ink);display:block}
+    /* replace scaling "pulse" with a non-layout-changing glow */
+    .pulse{animation:glow 1400ms infinite ease-in-out}
+    @keyframes glow{0%{text-shadow:0 4px 14px rgba(0,0,0,0.15)}50%{text-shadow:0 10px 30px rgba(0,0,0,0.22)}100%{text-shadow:0 4px 14px rgba(0,0,0,0.15)}}
+
+    .note{margin-top:12px;background:transparent;padding:6px 4px;border-radius:0;color:var(--ink);max-width:90%;box-shadow:none}
+    .small{margin-top:14px;color:#6b4a55;font-size:13px}
+
+    .paper-enter{animation:paperIn 520ms ease-out}
+    .paper-exit{animation:paperOut 560ms ease-in forwards}
+    @keyframes paperIn{
+      0%{transform:translateY(12px) rotate(1deg) scale(0.96); opacity:0}
+      100%{transform:translateY(0) rotate(-0.4deg) scale(1); opacity:1}
+    }
+    @keyframes paperOut{
+      0%{
+        transform:translateY(0) rotate(-0.4deg) scale(1);
+        opacity:1;
+        clip-path: polygon(0 0,100% 0,100% 100%,0 100%);
+      }
+      60%{
+        transform:translateY(12px) rotate(4deg) scale(0.92);
+        opacity:0.7;
+        clip-path: polygon(0 0,100% 0,100% 88%, 85% 94%, 70% 86%, 55% 96%, 40% 88%, 25% 98%, 10% 90%, 0 94%);
+      }
+      100%{
+        transform:translateY(44px) rotate(12deg) scale(0.75);
+        opacity:0;
+        filter:blur(1px) saturate(0.9);
+        clip-path: polygon(0 0,100% 0,100% 78%, 82% 88%, 64% 80%, 46% 92%, 28% 82%, 10% 90%, 0 86%);
+      }
+    }
+
+    /* circular bubble (position via transform only) - shiny with subtle rainbow sheen */
+    .kiss-bubble{
+      position:fixed; left:0; top:0; /* we use transform to place it; avoids layout shifts */
+      width:92px; height:92px; border-radius:50%;
+      display:flex;align-items:center;justify-content:center;
+      /* base pale color */
+      background: radial-gradient(120% 120% at 30% 25%, rgba(255,255,255,0.96), rgba(255,255,255,0.8) 8%, rgba(255,255,255,0.04) 45%), linear-gradient(180deg,#fff6f6,#fff0f2);
+      box-shadow:0 18px 40px rgba(200,150,170,0.14), inset 0 -8px 22px rgba(0,0,0,0.04);
+      font-weight:700; color:#8b4757; z-index:9999; cursor:pointer; user-select:none; touch-action:none;
+      transform: translate3d(0,0,0);
+      transition: box-shadow 160ms ease;
+      overflow:visible;
+    }
+    .kiss-bubble .jitter-wrap{width:100%;height:100%;display:flex;align-items:center;justify-content:center;}
+    .kiss-bubble .lip{font-size:40px;line-height:1;filter:drop-shadow(0 6px 10px rgba(255,110,150,0.06));}
+    .kiss-bubble.jittering .jitter-wrap{animation:jitter 120ms infinite;}
+    @keyframes jitter{
+      0%{transform:translate3d(0,0,0) rotate(0deg)}
+      25%{transform:translate3d(-1px,1px,0) rotate(-1deg)}
+      50%{transform:translate3d(1px,-1px,0) rotate(1deg)}
+      75%{transform:translate3d(1px,1px,0) rotate(0deg)}
+      100%{transform:translate3d(0,0,0) rotate(-1deg)}
+    }
+
+    /* subtle rainbow sheen overlay */
+    .kiss-bubble::after{
+      content:''; position:absolute; inset:0; border-radius:50%;
+      /* very subtle rainbow gradient -- low opacity so it's barely noticeable */
+      background: conic-gradient(from 200deg at 50% 50%, rgba(255,180,200,0.06), rgba(200,230,255,0.06), rgba(220,255,200,0.06), rgba(255,240,200,0.06), rgba(255,180,200,0.06));
+      mix-blend-mode:overlay; pointer-events:none; opacity:0.12; filter:blur(6px);
+      animation: slowTwist 9000ms linear infinite;
+    }
+    @keyframes slowTwist{0%{transform:rotate(0deg) scale(1)}50%{transform:rotate(180deg) scale(1.02)}100%{transform:rotate(360deg) scale(1)} }
+
+    /* thought cloud (hovering above bubble) */
+    .thought{
+      position:fixed; z-index:20030; pointer-events:none; display:flex;flex-direction:column;align-items:center; gap:6px; padding:10px 14px; border-radius:18px;
+      background:rgba(255,170,190,0.98); color:white; font-weight:700; font-size:13px;
+      box-shadow:0 10px 26px rgba(255,90,130,0.28); max-width:300px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; transform-origin:center bottom; opacity:1;
+      border:1px solid rgba(255,255,255,0.7);
+      animation: thoughtFloat 2200ms ease-in-out infinite, thoughtPulse 1600ms ease-in-out infinite;
+    }
+    @keyframes thoughtFloat{0%{transform:translateY(0)}50%{transform:translateY(-6px)}100%{transform:translateY(0)}}
+    @keyframes thoughtPulse{0%{box-shadow:0 10px 26px rgba(255,90,130,0.25)}50%{box-shadow:0 14px 34px rgba(255,90,130,0.45)}100%{box-shadow:0 10px 26px rgba(255,90,130,0.25)}}
+    .thought .text{padding:2px 6px}
+    .thought .dots{display:flex;gap:6px;align-items:center;justify-content:center}
+    .thought .dots span{width:8px;height:8px;border-radius:50%;background:#f2dbe0;opacity:0.9;transform:translateY(0);animation:dotRise 900ms infinite}
+    .thought .dots span:nth-child(2){animation-delay:160ms}
+    .thought .dots span:nth-child(3){animation-delay:320ms}
+    @keyframes dotRise{0%{transform:translateY(0);opacity:0.75}50%{transform:translateY(-8px);opacity:1}100%{transform:translateY(0);opacity:0.75}}
+
+    /* floating hearts (no bubbles) */
+    .float-heart{
+      position:fixed; left:0; top:0; z-index:9997; pointer-events:none;
+      color:#ff6b7d;
+      text-shadow: 0 6px 18px rgba(255,0,60,0.18);
+      transform: translate3d(0,0,0);
+      will-change: transform, opacity, color;
+    }
+    .float-heart.twinkle{animation:twinkle 2200ms ease-in-out infinite}
+    @keyframes twinkle{
+      0%{opacity:0.45;color:#ffc1cc}
+      45%{opacity:0.8;color:#ffd2da}
+      100%{opacity:0.6;color:#ffe4ea}
+    }
+
+    /* explosion overlay */
+    .boom{
+      position:fixed; inset:0; z-index:20000; pointer-events:none;
+      display:flex; align-items:center; justify-content:center;
+    }
+    .boom .flash{
+      width:40vmax; height:40vmax; border-radius:50%;
+      background: radial-gradient(circle, rgba(255,80,90,0.75), rgba(255,80,90,0.25) 40%, rgba(255,80,90,0) 70%);
+      animation: flash 700ms ease-out forwards;
+      filter: blur(2px);
+    }
+    @keyframes flash{
+      0%{transform:scale(0.2); opacity:0}
+      20%{transform:scale(0.6); opacity:1}
+      60%{transform:scale(1.2); opacity:0.7}
+      100%{transform:scale(1.6); opacity:0}
+    }
+    .heart{
+      position:fixed; z-index:20001; font-size:26px; pointer-events:none; color:#ff6b7d;
+      animation: heartFloat var(--life,3000ms) ease-out forwards;
+      text-shadow: 0 6px 18px rgba(255,0,60,0.25);
+    }
+    @keyframes heartFloat{
+      0%{transform:translate3d(var(--x), var(--y), 0) scale(0.6); opacity:0; color:#ff6b7d}
+      10%{opacity:1}
+      45%{opacity:0.9;color:#ff9fb0}
+      70%{opacity:0.7;color:#ffd0d8}
+      100%{transform:translate3d(var(--x2), var(--y2), 0) scale(1.3); opacity:0; color:#ffe4ea}
+    }
+
+    .next-btn{
+      margin-top:14px; padding:10px 16px; border-radius:999px; border:1px solid rgba(255,255,255,0.5);
+      background:rgba(255,255,255,0.18); color:#fff; font-weight:700; letter-spacing:0.3px; cursor:pointer;
+      box-shadow:0 8px 22px rgba(0,0,0,0.08); transition:transform 160ms ease, box-shadow 160ms ease, background 160ms ease;
+    }
+    .next-btn:hover{transform:translateY(-1px); background:rgba(255,255,255,0.28)}
+    .next-btn:active{transform:translateY(1px)}
+
+    .choice-buttons{
+      display:flex; gap:12px; justify-content:center; margin-top:12px; position:relative;
+      opacity:0; transform:translateY(6px); transition:opacity 240ms ease, transform 240ms ease;
+    }
+    .choice-buttons.hidden{display:none}
+    .choice-buttons.show{opacity:1; transform:translateY(0)}
+    .choice-btn{
+      border:none; border-radius:999px; padding:10px 18px; font-weight:800; letter-spacing:0.3px; cursor:pointer;
+      box-shadow:0 8px 20px rgba(0,0,0,0.12);
+    }
+    .yes-btn{
+      background:linear-gradient(180deg,#ff95b0,#ff6f91);
+      color:white;
+      animation:breathe 1800ms ease-in-out infinite;
+      z-index:2;
+    }
+    .no-btn{
+      background:rgba(255,255,255,0.65);
+      color:#6b4a55;
+      position:relative;
+      transition:transform 160ms ease, opacity 160ms ease;
+      z-index:1;
+    }
+    @keyframes breathe{
+      0%{transform:scale(1); box-shadow:0 8px 20px rgba(0,0,0,0.12)}
+      50%{transform:scale(1.05); box-shadow:0 12px 30px rgba(255,110,145,0.35)}
+      100%{transform:scale(1); box-shadow:0 8px 20px rgba(0,0,0,0.12)}
+    }
+
+    .celebrate-layer{
+      position:fixed; inset:0; z-index:20010; pointer-events:none; overflow:hidden;
+    }
+    .confetti{
+      position:absolute; width:8px; height:14px; border-radius:2px; opacity:0.9;
+      animation:confettiBurst 2200ms ease-out infinite;
+    }
+    @keyframes confettiBurst{
+      0%{transform:translate3d(var(--x),var(--y),0) rotate(0deg) scale(0.8); opacity:0}
+      15%{opacity:1}
+      100%{transform:translate3d(var(--x2),var(--y2),0) rotate(260deg) scale(1.1); opacity:0}
+    }
+    .firework{
+      position:absolute; width:6px; height:6px; border-radius:50%; background:transparent;
+      box-shadow:
+        0 -20px 0 #ffd166,
+        14px -14px 0 #ff6b7d,
+        20px 0 0 #6cd4ff,
+        14px 14px 0 #b8f2a6,
+        0 20px 0 #f7aef8,
+        -14px 14px 0 #ffd166,
+        -20px 0 0 #ff6b7d,
+        -14px -14px 0 #6cd4ff;
+      animation:firework 1800ms ease-out infinite;
+    }
+    @keyframes firework{
+      0%{transform:translate3d(var(--x),var(--y),0) scale(0.2); opacity:0}
+      20%{opacity:1}
+      100%{transform:translate3d(var(--x),var(--y),0) scale(2.4); opacity:0}
+    }
+    .celebrate-bubble{
+      position:absolute; border-radius:50%; border:1px solid rgba(255,255,255,0.7);
+      background: radial-gradient(circle at 30% 30%, rgba(255,255,255,0.65), rgba(255,255,255,0.08) 60%);
+      box-shadow: inset 0 0 12px rgba(255,255,255,0.45);
+      animation:bubbleFloat 6200ms ease-in-out infinite;
+    }
+    .photo-bubble{
+      overflow:hidden;
+      border:1px solid rgba(255,255,255,0.85);
+      box-shadow:0 12px 28px rgba(0,0,0,0.12), inset 0 0 12px rgba(255,255,255,0.5);
+      animation:none;
+      will-change: transform;
+    }
+    .photo-bubble img{
+      width:100%; height:100%; object-fit:cover; display:block;
+      filter:saturate(1.05) contrast(1.02);
+    }
+    @keyframes bubbleFloat{
+      0%{transform:translate3d(var(--bx),var(--by),0) scale(1)}
+      50%{transform:translate3d(calc(var(--bx) + 14px), calc(var(--by) - 12px),0) scale(1.05)}
+      100%{transform:translate3d(var(--bx),var(--by),0) scale(1)}
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="card" role="region" aria-label="Valentine card">
+      <div id="paper-slot">
+      </div>
+      <button class="next-btn" type="button" aria-label="Next note">Next</button>
+    </div>
+  </div>
+
+  <script>
+  (function(){
+    // --- Config ---
+    const LIP_EMOJI = '\u{1F48B}';
+    const THOUGHT_TEXT = 'do you wanna smooch? \u{1F618}';
+    const RADIUS = 46; // half of bubble size (92px)
+    const EXPLODE_DELAY_MS = 90;
+    const HEART_COUNT = 140;
+    const HEART_LIFE_MS = 3000;
+    const HEART_SPREAD = 140;
+    const FLOAT_HEART_COUNT = 180;
+    const FLOAT_HEART_MIN_SIZE = 18;
+    const FLOAT_HEART_MAX_SIZE = 34;
+    const FLOAT_HEART_SPEED_MIN = 40;
+    const FLOAT_HEART_SPEED_MAX = 140;
+    const FLOAT_TWINKLE_DELAY_MS = 1000;
+    const EMOJI_HEART = '\u2764\uFE0F';
+    const EMOJI_KISS = '\u{1F618}';
+    const FIREWORK_COUNT = 6;
+    const CONFETTI_COUNT = 120;
+    const CELEBRATE_BUBBLES = 6;
+
+    // grab card element to bounce off
+    const cardEl = document.querySelector('.card');
+    const paperSlot = document.getElementById('paper-slot');
+    const nextBtn = document.querySelector('.next-btn');
+    const slides = [
+      {
+        icon: '\u{1F495}',
+        title: 'Hey beautiful munchkin mama \u{1F339}\u{1F618}',
+        body: 'You\'re my favorite little wonder -- thought I\'d put this here to make you smile. \u{1F970}',
+        footer: 'Click the bubble to jitter and explode into hearts.'
+      },
+      {
+        icon: '\u{1F495}',
+        title: 'Being with you has given me some of the most beautiful memories of my life.',
+        body: 'The laughs, the random moments, the talks, the smiles... all of it means more to me than I can explain. I didn\'t just gain memories... I gained moments I never want to forget.',
+        footer: ''
+      },
+      {
+        icon: '\u{1F495}',
+        title: 'I\'ve got something to ask you...',
+        body: 'A little question that\'s been living in my heart. It\'s soft, honest, and just for you.',
+        footer: ''
+      },
+      {
+        icon: '\u{1F495}',
+        title: 'Will you be my Valentine… and let me be the reason you smile a little more, blush a little more, and feel a little more loved? 💋',
+        body: 'Let me take you out, hold you close, and steal a kiss or two.',
+        footer: ''
+      },
+      {
+        icon: '\u{1F495}',
+        title: 'You just made me the happiest person today. \u{1F495}',
+        body: '',
+        footer: ''
+      }
+    ];
+    const PHOTOS = [
+      'photos/1027.jpg',
+      'photos/1028.jpg',
+      'photos/1031.jpg',
+      'photos/1034.jpg',
+      'photos/1035.jpg',
+      'photos/1036.jpg',
+      'photos/1037.jpg',
+      'photos/1038.jpg',
+      'photos/1039.jpg',
+      'photos/1040.jpg',
+      'photos/1043%20(1).jpg',
+      'photos/1043.jpg',
+      'photos/1044.jpg',
+      'photos/1045.jpg',
+      'photos/1046.jpg',
+      'photos/1047.jpg',
+      'photos/1048.jpg',
+      'photos/1050.jpg'
+    ];
+
+    // Create bubble element (circular with emoji)
+    const bubble = document.createElement('div');
+    bubble.className = 'kiss-bubble';
+    bubble.innerHTML = `<div class="jitter-wrap"><div class="lip" aria-hidden>${LIP_EMOJI}</div></div>`;
+    bubble.setAttribute('role','button');
+    bubble.setAttribute('tabindex','0');
+    bubble.setAttribute('aria-label','Floating kiss bubble');
+    document.body.appendChild(bubble);
+
+    // Create thought cloud element (follows bubble) with three dots like thinking
+    const thought = document.createElement('div');
+    thought.className = 'thought';
+    thought.innerHTML = `<div class="text">${THOUGHT_TEXT}</div><div class="dots"><span></span><span></span><span></span></div>`;
+    document.body.appendChild(thought);
+    thought.style.opacity = '1';
+    thought.style.visibility = 'visible';
+    thought.style.display = 'flex';
+
+    // paper swapper + handwriting typing
+    let paperBusy = false;
+    let slideIndex = 0;
+    let typingToken = 0;
+
+    function typeText(el, text, speed, startDelay, token){
+      if(!el || !text){
+        if(el) el.style.display = 'none';
+        return 0;
+      }
+      el.style.display = '';
+      el.textContent = '';
+      const words = text.replace(/\n/g,' \n ').split(/\s+/).filter(Boolean);
+      let i = 0;
+      let first = true;
+      function step(){
+        if(token !== typingToken) return;
+        if(i >= words.length) return;
+        const w = words[i++];
+        if(w === '\n'){
+          el.appendChild(document.createElement('br'));
+          first = true;
+        } else {
+          const node = document.createTextNode((first ? '' : ' ') + w);
+          el.appendChild(node);
+          first = false;
+        }
+        setTimeout(step, speed);
+      }
+      setTimeout(step, startDelay);
+      return words.length * speed;
+    }
+
+    function buildPaper(slide){
+      const p = document.createElement('div');
+      p.className = 'paper paper-enter';
+      p.innerHTML = `
+        <div class="paper-icon handwritten">${slide.icon}</div>
+        <h1 class="pulse handwritten" data-role="title"></h1>
+        <div class="note handwritten" data-role="body"></div>
+        <div class="small handwritten" data-role="footer"></div>
+        <div class="choice-buttons hidden" data-role="actions">
+          <button class="choice-btn yes-btn" type="button">Yes</button>
+          <button class="choice-btn no-btn" type="button">No</button>
+        </div>
+      `;
+      return p;
+    }
+
+    function typeSlide(p, slide){
+      const token = ++typingToken;
+      const titleEl = p.querySelector('[data-role="title"]');
+      const bodyEl = p.querySelector('[data-role="body"]');
+      const footEl = p.querySelector('[data-role="footer"]');
+      let delay = 0;
+      delay += typeText(titleEl, slide.title, 110, delay, token);
+      delay += 180;
+      delay += typeText(bodyEl, slide.body, 90, delay, token);
+      delay += 160;
+      delay += typeText(footEl, slide.footer, 85, delay, token);
+      return delay;
+    }
+
+    function wireQuestionButtons(p){
+      const actions = p.querySelector('[data-role="actions"]');
+      const yesBtn = p.querySelector('.yes-btn');
+      const noBtn = p.querySelector('.no-btn');
+      if(!actions || !yesBtn || !noBtn) return;
+      actions.classList.remove('hidden');
+      setTimeout(()=> actions.classList.add('show'), 200);
+      let noStep = 0;
+      noBtn.addEventListener('click', (e)=>{
+        e.preventDefault();
+        noStep += 1;
+        const scale = Math.max(0.12, 1 - noStep * 0.18);
+        if(noStep >= 4){
+          const noRect = noBtn.getBoundingClientRect();
+          const yesRect = yesBtn.getBoundingClientRect();
+          const dx = yesRect.left - noRect.left;
+          const dy = yesRect.top - noRect.top;
+          noBtn.style.transform = `translate3d(${Math.round(dx)}px, ${Math.round(dy)}px, 0) scale(${scale})`;
+          noBtn.style.opacity = '0.25';
+          noBtn.style.pointerEvents = 'none';
+          return;
+        }
+        const cardRect = cardEl ? cardEl.getBoundingClientRect() : { width: 240, height: 200 };
+        const offsetX = rand(-cardRect.width * 0.25, cardRect.width * 0.25);
+        const offsetY = rand(-cardRect.height * 0.2, cardRect.height * 0.2);
+        noBtn.style.transform = `translate3d(${Math.round(offsetX)}px, ${Math.round(offsetY)}px, 0) scale(${scale})`;
+      });
+      yesBtn.addEventListener('click', ()=> goToSlide(4));
+    }
+
+    let emojisEnabled = true;
+    let celebrationActive = false;
+    let celebrationLayer = null;
+
+    function clearFloatingHearts(){
+      for(const h of floatHearts){ h.el.remove(); }
+      floatHearts.length = 0;
+      floatingHeartsActive = false;
+    }
+
+    function launchCelebration(){
+      if(celebrationActive) return;
+      celebrationActive = true;
+      emojisEnabled = false;
+      clearFloatingHearts();
+      document.querySelectorAll('.heart,.boom').forEach(el=>el.remove());
+
+      if(celebrationLayer) celebrationLayer.remove();
+      celebrationLayer = document.createElement('div');
+      celebrationLayer.className = 'celebrate-layer';
+      document.body.appendChild(celebrationLayer);
+
+      const colors = ['#ff6b7d','#ffd166','#6cd4ff','#b8f2a6','#f7aef8'];
+      for(let i=0;i<CONFETTI_COUNT;i++){
+        const c = document.createElement('div');
+        c.className = 'confetti';
+        c.style.background = colors[i % colors.length];
+        const x = rand(0, window.innerWidth);
+        const y = rand(0, window.innerHeight * 0.4);
+        const x2 = rand(0, window.innerWidth);
+        const y2 = rand(window.innerHeight * 0.4, window.innerHeight);
+        c.style.setProperty('--x', `${Math.round(x)}px`);
+        c.style.setProperty('--y', `${Math.round(y)}px`);
+        c.style.setProperty('--x2', `${Math.round(x2)}px`);
+        c.style.setProperty('--y2', `${Math.round(y2)}px`);
+        c.style.animationDelay = `${Math.round(rand(0, 1200))}ms`;
+        celebrationLayer.appendChild(c);
+      }
+
+      for(let i=0;i<FIREWORK_COUNT;i++){
+        const f = document.createElement('div');
+        f.className = 'firework';
+        f.style.setProperty('--x', `${Math.round(rand(60, window.innerWidth - 60))}px`);
+        f.style.setProperty('--y', `${Math.round(rand(80, window.innerHeight * 0.6))}px`);
+        f.style.animationDelay = `${Math.round(rand(0, 1200))}ms`;
+        celebrationLayer.appendChild(f);
+      }
+
+      photoBubblesActive = true;
+      photoBubbles.length = 0;
+      if(PHOTOS.length){
+        for(let i=0;i<CELEBRATE_BUBBLES;i++){
+          const b = makePhotoBubble();
+          celebrationLayer.appendChild(b.el);
+          photoBubbles.push(b);
+        }
+      }
+    }
+
+    function showSlide(index){
+      if(!paperSlot) return;
+      const slide = slides[index % slides.length];
+      const p = buildPaper(slide);
+      paperSlot.appendChild(p);
+      const duration = typeSlide(p, slide);
+      p.addEventListener('animationend', ()=> p.classList.remove('paper-enter'), { once:true });
+      const actions = p.querySelector('[data-role="actions"]');
+      if(actions) actions.classList.add('hidden');
+      if(index === 3){
+        setTimeout(()=> wireQuestionButtons(p), Math.max(duration, 600));
+      }
+      if(nextBtn){
+        nextBtn.style.display = (index === 3 || index === 4) ? 'none' : '';
+      }
+      if(index === 4){
+        launchCelebration();
+      }
+    }
+
+    function goToSlide(index){
+      if(paperBusy) return;
+      paperBusy = true;
+      const current = paperSlot.querySelector('.paper');
+      slideIndex = index % slides.length;
+      if(!current){
+        showSlide(slideIndex);
+        paperBusy = false;
+        return;
+      }
+      current.classList.add('paper-exit');
+      current.addEventListener('animationend', ()=>{
+        current.remove();
+        showSlide(slideIndex);
+        paperBusy = false;
+      }, { once:true });
+    }
+
+    if(paperSlot){
+      paperSlot.innerHTML = '';
+      showSlide(slideIndex);
+    }
+
+    if(nextBtn && paperSlot){
+      nextBtn.addEventListener('click', ()=>{
+        goToSlide(slideIndex + 1);
+      });
+    }
+
+    // Create floating hearts (no bubbles) that bounce around the viewport
+    const floatHearts = [];
+    let floatingHeartsActive = false;
+    const photoBubbles = [];
+    let photoBubblesActive = false;
+    function pickPhoto(current){
+      if(PHOTOS.length === 0) return '';
+      let p = PHOTOS[Math.floor(Math.random()*PHOTOS.length)];
+      if(PHOTOS.length > 1){
+        while(p === current){ p = PHOTOS[Math.floor(Math.random()*PHOTOS.length)]; }
+      }
+      return p;
+    }
+    function rand(min,max){ return Math.random() * (max - min) + min; }
+    function pickEmoji(){
+      return Math.random() < 0.7 ? EMOJI_HEART : EMOJI_KISS;
+    }
+    function makeFloatHeart(origin){
+      const el = document.createElement('div');
+      el.className = 'float-heart';
+      el.textContent = pickEmoji();
+      const size = rand(FLOAT_HEART_MIN_SIZE, FLOAT_HEART_MAX_SIZE);
+      el.style.fontSize = `${Math.round(size)}px`;
+      el.style.animationDelay = `${Math.round(rand(0, 800))}ms`;
+      document.body.appendChild(el);
+      const x = origin.x + rand(-16, 16);
+      const y = origin.y + rand(-16, 16);
+      const angle = rand(0, Math.PI * 2);
+      const speed = rand(FLOAT_HEART_SPEED_MIN, FLOAT_HEART_SPEED_MAX);
+      const vx = Math.cos(angle) * speed;
+      const vy = Math.sin(angle) * speed;
+      const heart = { el, x, y, vx, vy, size };
+      el.style.transform = `translate3d(${Math.round(x)}px, ${Math.round(y)}px, 0)`;
+      return heart;
+    }
+
+    function makePhotoBubble(){
+      const el = document.createElement('div');
+      el.className = 'celebrate-bubble photo-bubble';
+      const img = document.createElement('img');
+      img.alt = 'Memory';
+      el.appendChild(img);
+      const size = rand(110, 165);
+      const x = rand(20, Math.max(20, window.innerWidth - size - 20));
+      const y = rand(60, Math.max(60, window.innerHeight - size - 60));
+      const angle = rand(0, Math.PI * 2);
+      const speed = rand(22, 60);
+      const vx = Math.cos(angle) * speed;
+      const vy = Math.sin(angle) * speed;
+      const bubble = { el, img, x, y, vx, vy, size, r: size/2, nextChange: rand(1200, 5000), src: '' };
+      const src = pickPhoto();
+      bubble.src = src;
+      if(src) img.src = src;
+      el.style.width = `${Math.round(size)}px`;
+      el.style.height = `${Math.round(size)}px`;
+      el.style.transform = `translate3d(${Math.round(x)}px, ${Math.round(y)}px, 0)`;
+      return bubble;
+    }
+
+    // initial position (somewhere on screen)
+    let x = Math.min(120, Math.max(8, window.innerWidth * 0.12));
+    let y = Math.min(120, Math.max(8, window.innerHeight * 0.18));
+
+    // set initial transforms so text appears immediately
+    bubble.style.transform = `translate3d(${Math.round(x)}px, ${Math.round(y)}px, 0)`;
+    // velocity px per second
+    let vx = (Math.random() * 140 + 60) * (Math.random()<0.5?-1:1);
+    let vy = (Math.random() * 120 + 40) * (Math.random()<0.5?-1:1);
+
+    let running = true;
+    let last = null;
+    const bounceEnergy = 0.94;
+    let exploding = false;
+
+    function clamp(n,a,b){ return Math.max(a, Math.min(b, n)); }
+
+    function rectsOverlap(ax,ay,aw,ah, bx,by,bw,bh){
+      return ax < bx + bw && ax + aw > bx && ay < by + bh && ay + ah > by;
+    }
+
+    function updateFloatingHearts(dt){
+      if(!floatingHeartsActive || !emojisEnabled) return;
+      const s = dt/1000;
+      for(const h of floatHearts){
+        h.x += h.vx * s;
+        h.y += h.vy * s;
+        const minX = 6;
+        const minY = 6;
+        const maxX = Math.max(window.innerWidth - h.size - 6, minX);
+        const maxY = Math.max(window.innerHeight - h.size - 6, minY);
+        if(h.x <= minX){ h.x = minX; h.vx = -h.vx * bounceEnergy; }
+        if(h.x >= maxX){ h.x = maxX; h.vx = -h.vx * bounceEnergy; }
+        if(h.y <= minY){ h.y = minY; h.vy = -h.vy * bounceEnergy; }
+        if(h.y >= maxY){ h.y = maxY; h.vy = -h.vy * bounceEnergy; }
+        h.el.style.transform = `translate3d(${Math.round(h.x)}px, ${Math.round(h.y)}px, 0)`;
+      }
+    }
+
+    function updatePhotoBubbles(dt){
+      if(!photoBubblesActive) return;
+      const s = dt/1000;
+      for(const b of photoBubbles){
+        b.x += b.vx * s;
+        b.y += b.vy * s;
+        const minX = 12;
+        const minY = 12;
+        const maxX = Math.max(window.innerWidth - b.size - 12, minX);
+        const maxY = Math.max(window.innerHeight - b.size - 12, minY);
+        if(b.x <= minX){ b.x = minX; b.vx = -b.vx; }
+        if(b.x >= maxX){ b.x = maxX; b.vx = -b.vx; }
+        if(b.y <= minY){ b.y = minY; b.vy = -b.vy; }
+        if(b.y >= maxY){ b.y = maxY; b.vy = -b.vy; }
+        b.nextChange -= dt;
+        if(b.nextChange <= 0){
+          const next = pickPhoto(b.src);
+          if(next){ b.src = next; b.img.src = next; }
+          b.nextChange = rand(2500, 5000);
+        }
+      }
+      // collisions
+      for(let i=0;i<photoBubbles.length;i++){
+        for(let j=i+1;j<photoBubbles.length;j++){
+          const a = photoBubbles[i];
+          const b = photoBubbles[j];
+          const ax = a.x + a.r;
+          const ay = a.y + a.r;
+          const bx = b.x + b.r;
+          const by = b.y + b.r;
+          const dx = bx - ax;
+          const dy = by - ay;
+          const dist = Math.hypot(dx, dy) || 0.0001;
+          const minDist = a.r + b.r;
+          if(dist < minDist){
+            const nx = dx / dist;
+            const ny = dy / dist;
+            const overlap = minDist - dist;
+            a.x -= nx * (overlap/2);
+            a.y -= ny * (overlap/2);
+            b.x += nx * (overlap/2);
+            b.y += ny * (overlap/2);
+            const p = (a.vx*nx + a.vy*ny - b.vx*nx - b.vy*ny);
+            a.vx -= p * nx;
+            a.vy -= p * ny;
+            b.vx += p * nx;
+            b.vy += p * ny;
+          }
+        }
+      }
+      for(const b of photoBubbles){
+        b.el.style.transform = `translate3d(${Math.round(b.x)}px, ${Math.round(b.y)}px, 0)`;
+      }
+    }
+
+    function tick(ts){
+      if(!last) last = ts;
+      const dt = Math.min(40, ts - last);
+      last = ts;
+      updateFloatingHearts(dt);
+      updatePhotoBubbles(dt);
+      if(running){
+        const s = dt/1000;
+        x += vx * s;
+        y += vy * s;
+
+        const minX = 8;
+        const minY = 8;
+        const maxX = Math.max(window.innerWidth - RADIUS*2 - 8, minX);
+        const maxY = Math.max(window.innerHeight - RADIUS*2 - 8, minY);
+
+        // bounce off viewport edges
+        let bounced = false;
+        if(x <= minX){ x = minX; vx = -vx * bounceEnergy; bounced = true; }
+        if(x >= maxX){ x = maxX; vx = -vx * bounceEnergy; bounced = true; }
+        if(y <= minY){ y = minY; vy = -vy * bounceEnergy; bounced = true; }
+        if(y >= maxY){ y = maxY; vy = -vy * bounceEnergy; bounced = true; }
+
+        // bounce off card element (treat card as axis-aligned rectangle)
+        if(cardEl){
+          const c = cardEl.getBoundingClientRect();
+          const bx = x; const by = y; const bw = RADIUS*2; const bh = RADIUS*2;
+          const cx = Math.round(c.left); const cy = Math.round(c.top);
+          const cw = Math.round(c.width); const ch = Math.round(c.height);
+          if(rectsOverlap(bx,by,bw,bh, cx,cy,cw,ch)){
+            // compute penetration depths on each side
+            const overlapLeft = (bx + bw) - cx; // how far into left side
+            const overlapRight = (cx + cw) - bx; // into right side
+            const overlapTop = (by + bh) - cy;
+            const overlapBottom = (cy + ch) - by;
+            // find smallest overlap to decide collision side
+            const minOverlap = Math.min(overlapLeft, overlapRight, overlapTop, overlapBottom);
+            if(minOverlap === overlapLeft){
+              // collided with card's left edge
+              x = cx - bw - 1;
+              vx = -Math.abs(vx) * bounceEnergy;
+            } else if(minOverlap === overlapRight){
+              x = cx + cw + 1;
+              vx = Math.abs(vx) * bounceEnergy;
+            } else if(minOverlap === overlapTop){
+              y = cy - bh - 1;
+              vy = -Math.abs(vy) * bounceEnergy;
+            } else {
+              y = cy + ch + 1;
+              vy = Math.abs(vy) * bounceEnergy;
+            }
+            bounced = true;
+            // small random nudge so it doesn't get stuck
+            vx += (Math.random()-0.5)*30; vy += (Math.random()-0.5)*30;
+          }
+        }
+
+        if(bounced){ vx *= 0.998; vy *= 0.998; }
+
+        // gentle friction
+        vx *= 0.9996; vy *= 0.9996;
+
+        // apply transform (no left/top changes) -- smooth GPU animation
+        bubble.style.transform = `translate3d(${Math.round(x)}px, ${Math.round(y)}px, 0)`;
+
+        // position thought directly above the bubble (centered)
+        const cloudRect = thought.getBoundingClientRect();
+        const cloudW = cloudRect.width || 200;
+        const cloudH = cloudRect.height || 44;
+        let tx = x + RADIUS - (cloudW/2); // center above bubble
+        let ty = y - cloudH - 12; // above bubble
+
+        // clamp cloud inside viewport
+        tx = clamp(tx, 8, window.innerWidth - cloudW - 8);
+        ty = clamp(ty, 8, window.innerHeight - cloudH - 8);
+
+        thought.style.transform = `translate3d(${Math.round(tx)}px, ${Math.round(ty)}px, 0)`;
+
+      }
+      requestAnimationFrame(tick);
+    }
+    requestAnimationFrame(tick);
+
+    function spawnExplosion(cx, cy){
+      if(exploding) return;
+      exploding = true;
+
+      // screen flash
+      const boom = document.createElement('div');
+      boom.className = 'boom';
+      boom.innerHTML = `<div class="flash"></div>`;
+      document.body.appendChild(boom);
+
+      if(emojisEnabled){
+        // hearts everywhere (fade away)
+        for(let i=0;i<HEART_COUNT;i++){
+          const h = document.createElement('div');
+          h.className = 'heart';
+          h.textContent = pickEmoji();
+          const startX = cx + (Math.random()*HEART_SPREAD - HEART_SPREAD/2);
+          const startY = cy + (Math.random()*HEART_SPREAD - HEART_SPREAD/2);
+          const endX = (Math.random() * window.innerWidth);
+          const endY = (Math.random() * window.innerHeight);
+          h.style.setProperty('--x', `${Math.round(startX)}px`);
+          h.style.setProperty('--y', `${Math.round(startY)}px`);
+          h.style.setProperty('--x2', `${Math.round(endX)}px`);
+          h.style.setProperty('--y2', `${Math.round(endY)}px`);
+          h.style.fontSize = `${18 + Math.random()*24}px`;
+          h.style.animationDelay = `${Math.random()*220}ms`;
+          h.style.setProperty('--life', `${HEART_LIFE_MS}ms`);
+          document.body.appendChild(h);
+          h.addEventListener('animationend', ()=> h.remove());
+        }
+
+        // floating hearts across the screen (start only after explosion)
+        if(!floatingHeartsActive){
+          floatingHeartsActive = true;
+          const origin = { x: cx, y: cy };
+          for(let i=0;i<FLOAT_HEART_COUNT;i++){ floatHearts.push(makeFloatHeart(origin)); }
+        }
+
+        // after 1s, start soft twinkle/pulse (hearts stay)
+        setTimeout(()=>{
+          for(const h of floatHearts){ h.el.classList.add('twinkle'); }
+        }, FLOAT_TWINKLE_DELAY_MS);
+      }
+
+      // remove flash after animation
+      setTimeout(()=> boom.remove(), 900);
+    }
+
+    // interaction: click to jitter, then explode
+    bubble.addEventListener('click', ()=>{
+      if(exploding) return;
+      // start jitter, then explode
+      bubble.classList.add('jittering');
+      bubble.style.boxShadow = '0 8px 20px rgba(0,0,0,0.06), inset 0 -4px 12px rgba(0,0,0,0.04)';
+      const bx = x + RADIUS;
+      const by = y + RADIUS;
+      setTimeout(()=>{
+        spawnExplosion(bx, by);
+        bubble.style.opacity = '0';
+      }, EXPLODE_DELAY_MS);
+    });
+
+    // keyboard
+    bubble.addEventListener('keydown',(e)=>{ 
+      if(e.key === 'Enter' || e.key === ' '){
+        e.preventDefault();
+        if(exploding) return;
+        bubble.classList.add('jittering');
+        bubble.style.boxShadow = '0 8px 20px rgba(0,0,0,0.06), inset 0 -4px 12px rgba(0,0,0,0.04)';
+        const bx = x + RADIUS;
+        const by = y + RADIUS;
+        setTimeout(()=>{
+          spawnExplosion(bx, by);
+          bubble.style.opacity = '0';
+        }, EXPLODE_DELAY_MS);
+      }
+    });
+
+    // keep bubble inside on resize
+    window.addEventListener('resize', ()=>{
+      x = clamp(x, 8, Math.max(8, window.innerWidth - RADIUS*2 - 8));
+      y = clamp(y, 8, Math.max(8, window.innerHeight - RADIUS*2 - 8));
+      for(const h of floatHearts){
+        h.x = clamp(h.x, 6, Math.max(6, window.innerWidth - h.size - 6));
+        h.y = clamp(h.y, 6, Math.max(6, window.innerHeight - h.size - 6));
+        h.el.style.transform = `translate3d(${Math.round(h.x)}px, ${Math.round(h.y)}px, 0)`;
+      }
+      for(const b of photoBubbles){
+        b.x = clamp(b.x, 12, Math.max(12, window.innerWidth - b.size - 12));
+        b.y = clamp(b.y, 12, Math.max(12, window.innerHeight - b.size - 12));
+        b.el.style.transform = `translate3d(${Math.round(b.x)}px, ${Math.round(b.y)}px, 0)`;
+      }
+    });
+
+    // small entrance pop effect
+    bubble.style.transform = `translate3d(${Math.round(x)}px, ${Math.round(y)}px, 0)`;
+    bubble.animate([{ transform: `translate3d(${Math.round(x)}px, ${Math.round(y)}px, 0) scale(.6)` },{ transform: `translate3d(${Math.round(x)}px, ${Math.round(y)}px, 0) scale(1)` }],{duration:380,easing:'cubic-bezier(.2,.9,.3,1)'});
+
+  })();
+  </script>
+</body>
+</html>
