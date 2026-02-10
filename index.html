@@ -202,13 +202,18 @@
     }
     .confetti{
       position:absolute; width:8px; height:14px; border-radius:2px; opacity:0.7;
-      animation:confettiBurst 12000ms ease-in-out infinite;
+      animation:
+        confettiExplode 6000ms ease-out forwards,
+        confettiDrift 8000ms ease-in-out 6000ms infinite;
     }
-    @keyframes confettiBurst{
+    @keyframes confettiExplode{
       0%{transform:translate3d(var(--x),var(--y),0) rotate(0deg) scale(0.9); opacity:0}
-      10%{opacity:0.8}
-      50%{transform:translate3d(var(--x2),var(--y2),0) rotate(260deg) scale(1.05); opacity:0.75}
-      100%{transform:translate3d(var(--x3),var(--y3),0) rotate(420deg) scale(1.0); opacity:0.6}
+      15%{opacity:0.8}
+      100%{transform:translate3d(var(--x2),var(--y2),0) rotate(260deg) scale(1.05); opacity:0.7}
+    }
+    @keyframes confettiDrift{
+      0%{transform:translate3d(var(--x2),var(--y2),0) rotate(260deg) scale(1.05); opacity:0.65}
+      100%{transform:translate3d(var(--x3),var(--y3),0) rotate(420deg) scale(1.0); opacity:0.55}
     }
     .firework{
       position:absolute; width:6px; height:6px; border-radius:50%; background:transparent; opacity:0.6;
@@ -241,7 +246,7 @@
       box-shadow:0 12px 28px rgba(0,0,0,0.12), inset 0 0 12px rgba(255,255,255,0.5);
       animation:none;
       will-change: transform, opacity;
-      opacity:0.65;
+      opacity:1;
     }
     .photo-bubble img{
       width:100%; height:100%; object-fit:cover; display:block;
@@ -267,15 +272,17 @@
   (function(){
     // --- Config ---
     const LIP_EMOJI = '\u{1F48B}';
-    const RADIUS = 46; // half of bubble size (92px)
     const EXPLODE_DELAY_MS = 4000;
     const IS_MOBILE = window.matchMedia && window.matchMedia('(max-width: 700px)').matches;
-    const HEART_COUNT = IS_MOBILE ? 70 : 140;
+    const SCALE = Math.max(0.72, Math.min(1, window.innerWidth / 900));
+    let BUBBLE_SIZE = Math.round(92 * SCALE);
+    let RADIUS = Math.round(BUBBLE_SIZE / 2);
+    const HEART_COUNT = IS_MOBILE ? 40 : 90;
     const HEART_LIFE_MS = 3000;
-    const HEART_SPREAD = IS_MOBILE ? 110 : 140;
-    const FLOAT_HEART_COUNT = IS_MOBILE ? 90 : 180;
-    const FLOAT_HEART_MIN_SIZE = 18;
-    const FLOAT_HEART_MAX_SIZE = 34;
+    const HEART_SPREAD = Math.round((IS_MOBILE ? 110 : 140) * SCALE);
+    const FLOAT_HEART_COUNT = IS_MOBILE ? 55 : 120;
+    const FLOAT_HEART_MIN_SIZE = Math.round(16 * SCALE);
+    const FLOAT_HEART_MAX_SIZE = Math.round(30 * SCALE);
     const FLOAT_HEART_SPEED_MIN = 40;
     const FLOAT_HEART_SPEED_MAX = 140;
     const FLOAT_TWINKLE_DELAY_MS = 1000;
@@ -350,6 +357,10 @@
     bubble.setAttribute('tabindex','0');
     bubble.setAttribute('aria-label','Floating kiss bubble');
     document.body.appendChild(bubble);
+    bubble.style.width = `${BUBBLE_SIZE}px`;
+    bubble.style.height = `${BUBBLE_SIZE}px`;
+    const lipEl = bubble.querySelector('.lip');
+    if(lipEl) lipEl.style.fontSize = `${Math.round(40 * SCALE)}px`;
 
     // paper swapper + handwriting typing
     let paperBusy = false;
@@ -468,10 +479,14 @@
 
       const colors = ['#ff6b7d','#ffd166','#6cd4ff','#b8f2a6','#f7aef8'];
       const confettiFrag = document.createDocumentFragment();
+      const confW = Math.max(5, Math.round(8 * SCALE));
+      const confH = Math.max(9, Math.round(14 * SCALE));
       for(let i=0;i<CONFETTI_COUNT;i++){
         const c = document.createElement('div');
         c.className = 'confetti';
         c.style.background = colors[i % colors.length];
+        c.style.width = `${confW}px`;
+        c.style.height = `${confH}px`;
         const x = rand(0, window.innerWidth);
         const y = rand(0, window.innerHeight * 0.4);
         const x2 = rand(0, window.innerWidth);
@@ -603,7 +618,7 @@
       const img = document.createElement('img');
       img.alt = 'Memory';
       el.appendChild(img);
-      const size = rand(110, 165);
+      const size = rand(110 * SCALE, 165 * SCALE);
       const x = rand(20, Math.max(20, window.innerWidth - size - 20));
       const y = rand(60, Math.max(60, window.innerHeight - size - 60));
       const angle = rand(0, Math.PI * 2);
@@ -634,6 +649,7 @@
     let last = null;
     const bounceEnergy = 0.94;
     let exploding = false;
+    let motionAccumulator = 0;
 
     function clamp(n,a,b){ return Math.max(a, Math.min(b, n)); }
 
@@ -682,7 +698,7 @@
         }
         if(cardRect){
           const overlap = b.x < cardRect.right && b.x + b.size > cardRect.left && b.y < cardRect.bottom && b.y + b.size > cardRect.top;
-          b.el.style.opacity = overlap ? '0.35' : '0.65';
+          b.el.style.opacity = overlap ? '0.4' : '1';
         }
       }
       // collisions
@@ -723,8 +739,13 @@
       if(!last) last = ts;
       const dt = Math.min(40, ts - last);
       last = ts;
-      updateFloatingHearts(dt);
-      updatePhotoBubbles(dt);
+      motionAccumulator += dt;
+      const doUpdate = !IS_MOBILE || motionAccumulator >= 32;
+      if(doUpdate){
+        updateFloatingHearts(motionAccumulator);
+        updatePhotoBubbles(motionAccumulator);
+        motionAccumulator = 0;
+      }
       if(running){
         const s = dt/1000;
         x += vx * s;
@@ -794,42 +815,51 @@
       exploding = true;
 
       if(emojisEnabled){
-        const frag = document.createDocumentFragment();
-        // hearts everywhere (fade away)
-        for(let i=0;i<HEART_COUNT;i++){
-          const h = document.createElement('div');
-          h.className = 'heart';
-          h.textContent = pickEmoji();
-          const startX = cx + (Math.random()*HEART_SPREAD - HEART_SPREAD/2);
-          const startY = cy + (Math.random()*HEART_SPREAD - HEART_SPREAD/2);
-          const endX = (Math.random() * window.innerWidth);
-          const endY = (Math.random() * window.innerHeight);
-          h.style.setProperty('--x', `${Math.round(startX)}px`);
-          h.style.setProperty('--y', `${Math.round(startY)}px`);
-          h.style.setProperty('--x2', `${Math.round(endX)}px`);
-          h.style.setProperty('--y2', `${Math.round(endY)}px`);
-          h.style.fontSize = `${18 + Math.random()*24}px`;
-          h.style.animationDelay = `${Math.random()*220}ms`;
-          h.style.setProperty('--life', `${HEART_LIFE_MS}ms`);
-          frag.appendChild(h);
-          h.addEventListener('animationend', ()=> h.remove());
-        }
-        document.body.appendChild(frag);
+        let created = 0;
+        const batchSize = IS_MOBILE ? 8 : 14;
+        const createHeartBatch = ()=>{
+          const frag = document.createDocumentFragment();
+          for(let i=0;i<batchSize && created<HEART_COUNT;i++, created++){
+            const h = document.createElement('div');
+            h.className = 'heart';
+            h.textContent = pickEmoji();
+            const startX = cx + (Math.random()*HEART_SPREAD - HEART_SPREAD/2);
+            const startY = cy + (Math.random()*HEART_SPREAD - HEART_SPREAD/2);
+            const endX = (Math.random() * window.innerWidth);
+            const endY = (Math.random() * window.innerHeight);
+            h.style.setProperty('--x', `${Math.round(startX)}px`);
+            h.style.setProperty('--y', `${Math.round(startY)}px`);
+            h.style.setProperty('--x2', `${Math.round(endX)}px`);
+            h.style.setProperty('--y2', `${Math.round(endY)}px`);
+            h.style.fontSize = `${Math.round((16 + Math.random()*22) * SCALE)}px`;
+            h.style.animationDelay = `${Math.random()*220}ms`;
+            h.style.setProperty('--life', `${HEART_LIFE_MS}ms`);
+            frag.appendChild(h);
+            h.addEventListener('animationend', ()=> h.remove());
+          }
+          if(frag.childNodes.length) document.body.appendChild(frag);
+          if(created < HEART_COUNT) requestAnimationFrame(createHeartBatch);
+        };
+        createHeartBatch();
 
-        // floating hearts across the screen (start only after explosion)
         if(!floatingHeartsActive){
           floatingHeartsActive = true;
           const origin = { x: cx, y: cy };
-          const ffrag = document.createDocumentFragment();
-          for(let i=0;i<FLOAT_HEART_COUNT;i++){
-            const fh = makeFloatHeart(origin);
-            ffrag.appendChild(fh.el);
-            floatHearts.push(fh);
-          }
-          document.body.appendChild(ffrag);
+          let fCreated = 0;
+          const fBatch = IS_MOBILE ? 6 : 10;
+          const createFloatBatch = ()=>{
+            const frag = document.createDocumentFragment();
+            for(let i=0;i<fBatch && fCreated<FLOAT_HEART_COUNT;i++, fCreated++){
+              const fh = makeFloatHeart(origin);
+              frag.appendChild(fh.el);
+              floatHearts.push(fh);
+            }
+            if(frag.childNodes.length) document.body.appendChild(frag);
+            if(fCreated < FLOAT_HEART_COUNT) requestAnimationFrame(createFloatBatch);
+          };
+          createFloatBatch();
         }
 
-        // after 1s, start soft twinkle/pulse (hearts stay)
         setTimeout(()=>{
           for(const h of floatHearts){ h.el.classList.add('twinkle'); }
         }, FLOAT_TWINKLE_DELAY_MS);
@@ -869,6 +899,12 @@
 
     // keep bubble inside on resize
     window.addEventListener('resize', ()=>{
+      const scale = Math.max(0.72, Math.min(1, window.innerWidth / 900));
+      BUBBLE_SIZE = Math.round(92 * scale);
+      RADIUS = Math.round(BUBBLE_SIZE / 2);
+      bubble.style.width = `${BUBBLE_SIZE}px`;
+      bubble.style.height = `${BUBBLE_SIZE}px`;
+      if(lipEl) lipEl.style.fontSize = `${Math.round(40 * scale)}px`;
       x = clamp(x, 8, Math.max(8, window.innerWidth - RADIUS*2 - 8));
       y = clamp(y, 8, Math.max(8, window.innerHeight - RADIUS*2 - 8));
       for(const h of floatHearts){
