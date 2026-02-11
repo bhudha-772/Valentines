@@ -17,7 +17,7 @@
     *{box-sizing:border-box}
     html,body{height:100%;margin:0;background:var(--bg);color:#2b2b2b}
     .wrap{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:28px}
-    .card{width:100%;max-width:520px;background:linear-gradient(180deg,var(--card),var(--card-deep));border-radius:20px;padding:18px;box-shadow:0 18px 40px rgba(255,120,150,0.12);position:relative;display:flex;flex-direction:column;align-items:center;text-align:center;min-height:220px}
+    .card{width:100%;max-width:520px;background:linear-gradient(180deg,var(--card),var(--card-deep));border-radius:20px;padding:18px;box-shadow:0 18px 40px rgba(255,120,150,0.12);position:relative;display:flex;flex-direction:column;align-items:center;text-align:center}
     .card:before{content:'';position:absolute;inset:0;border-radius:20px;pointer-events:none;background:radial-gradient(circle at 10% 30%, rgba(255,255,255,0.14), transparent 8%), radial-gradient(circle at 90% 80%, rgba(255,255,255,0.06), transparent 14%)}
 
     .paper{
@@ -55,6 +55,16 @@
 
     .note{margin-top:12px;background:transparent;padding:6px 4px;border-radius:0;color:var(--ink);max-width:90%;box-shadow:none}
     .small{margin-top:14px;color:#6b4a55;font-size:13px}
+
+    @media (max-width:600px){
+      .wrap{padding:16px}
+      .card{padding:14px}
+      .paper{padding:14px 14px 16px}
+      .paper-icon{width:72px;height:72px;font-size:32px}
+      h1{font-size:22px}
+      .note{font-size:14px}
+      .small{font-size:12px}
+    }
 
     .paper-enter{animation:paperIn 520ms ease-out}
     .paper-exit{animation:paperOut 560ms ease-in forwards}
@@ -317,7 +327,7 @@
       },
       {
         icon: '\u{1F495}',
-        title: 'Will you be my Valentine… and let me be the reason you smile a little more, blush a little more, and feel a little more loved? 💋',
+        title: 'Will you be my Valentine... and let me be the reason you smile a little more, blush a little more, and feel a little more loved? \\u{1F48B}',
         body: 'Let me take you out, hold you close, and steal a kiss or two.',
         footer: ''
       },
@@ -328,25 +338,25 @@
         footer: ''
       }
     ];
-    const PHOTOS = [
-      'photos/1027.jpg',
-      'photos/1028.jpg',
-      'photos/1031.jpg',
-      'photos/1034.jpg',
-      'photos/1035.jpg',
-      'photos/1036.jpg',
-      'photos/1037.jpg',
-      'photos/1038.jpg',
-      'photos/1039.jpg',
-      'photos/1040.jpg',
-      'photos/1043%20(1).jpg',
-      'photos/1043.jpg',
-      'photos/1044.jpg',
-      'photos/1045.jpg',
-      'photos/1046.jpg',
-      'photos/1047.jpg',
-      'photos/1048.jpg',
-      'photos/1050.jpg'
+    const PHOTO_FILES = [
+      '1027.jpg',
+      '1028.jpg',
+      '1031.jpg',
+      '1034.jpg',
+      '1035.jpg',
+      '1036.jpg',
+      '1037.jpg',
+      '1038.jpg',
+      '1039.jpg',
+      '1040.jpg',
+      '1043 (1).jpg',
+      '1043.jpg',
+      '1044.jpg',
+      '1045.jpg',
+      '1046.jpg',
+      '1047.jpg',
+      '1048.jpg',
+      '1050.jpg'
     ];
 
     // Create bubble element (circular with emoji)
@@ -517,7 +527,7 @@
 
       photoBubblesActive = true;
       photoBubbles.length = 0;
-      if(PHOTOS.length){
+      if(PHOTO_FILES.length){
         const bubbleFrag = document.createDocumentFragment();
         for(let i=0;i<CELEBRATE_BUBBLES;i++){
           const b = makePhotoBubble();
@@ -582,11 +592,14 @@
     let floatingHeartsActive = false;
     const photoBubbles = [];
     let photoBubblesActive = false;
+    function photoUrl(name){
+      return `photos/${encodeURIComponent(name)}`;
+    }
     function pickPhoto(current){
-      if(PHOTOS.length === 0) return '';
-      let p = PHOTOS[Math.floor(Math.random()*PHOTOS.length)];
-      if(PHOTOS.length > 1){
-        while(p === current){ p = PHOTOS[Math.floor(Math.random()*PHOTOS.length)]; }
+      if(PHOTO_FILES.length === 0) return '';
+      let p = PHOTO_FILES[Math.floor(Math.random()*PHOTO_FILES.length)];
+      if(PHOTO_FILES.length > 1){
+        while(p === current){ p = PHOTO_FILES[Math.floor(Math.random()*PHOTO_FILES.length)]; }
       }
       return p;
     }
@@ -617,6 +630,8 @@
       el.className = 'celebrate-bubble photo-bubble';
       const img = document.createElement('img');
       img.alt = 'Memory';
+      img.loading = 'lazy';
+      img.decoding = 'async';
       el.appendChild(img);
       const size = rand(110 * SCALE, 165 * SCALE);
       const x = rand(20, Math.max(20, window.innerWidth - size - 20));
@@ -628,7 +643,7 @@
       const bubble = { el, img, x, y, vx, vy, size, r: size/2, nextChange: rand(1200, 5000), src: '' };
       const src = pickPhoto();
       bubble.src = src;
-      if(src) img.src = src;
+      if(src) img.src = photoUrl(src);
       el.style.width = `${Math.round(size)}px`;
       el.style.height = `${Math.round(size)}px`;
       el.style.transform = `translate3d(${Math.round(x)}px, ${Math.round(y)}px, 0)`;
@@ -693,7 +708,7 @@
         b.nextChange -= dt;
         if(b.nextChange <= 0){
           const next = pickPhoto(b.src);
-          if(next){ b.src = next; b.img.src = next; }
+          if(next){ b.src = next; b.img.src = photoUrl(next); }
           b.nextChange = rand(2500, 5000);
         }
         if(cardRect){
